@@ -1,0 +1,57 @@
+import PIL.Image
+import PIL.ImageSequence
+
+# ASCII characters used to build the output text
+ASCII_CHARS = ["@", "#", "S", "%", "?", "*", "+", " ", ":", ",", "."]
+
+def resize_image(image, new_width=100):
+    width, height = image.size
+    ratio = height / width
+    new_height = int(new_width * ratio)
+    resized_image = image.resize((new_width, new_height))
+    return resized_image
+
+def grayify(image):
+    grayscale_image = image.convert("L")
+    return grayscale_image
+
+def pixels_to_ascii(image):
+    pixels = image.getdata()
+    ascii_str = "".join([ASCII_CHARS[pixel // 25] for pixel in pixels])
+    return ascii_str
+
+def convert_image_to_ascii(image_path, new_width=100):
+    try:
+        # Load the image
+        image = PIL.Image.open(image_path)
+    except Exception as e:
+        print(e)
+        return
+
+    # Process each frame of the GIF
+    frames = []
+    for frame in PIL.ImageSequence.Iterator(image):
+        # Convert the frame to ASCII
+        frame = resize_image(frame, new_width)
+        frame = grayify(frame)
+        ascii_str = pixels_to_ascii(frame)
+        
+        img_width = frame.width
+        ascii_str_len = len(ascii_str)
+        ascii_img = "\n".join([ascii_str[index:(index + img_width)] for index in range(0, ascii_str_len, img_width)])
+        
+        frames.append(ascii_img)
+
+    return frames
+
+if __name__ == "__main__":
+    image_path = r"C:\Users\jiten\Downloads\icegif-290.gif"  # Path to the GIF file
+    ascii_frames = convert_image_to_ascii(image_path, 100)
+    
+    for i, frame in enumerate(ascii_frames):
+        print(f"Frame {i + 1}:\n{frame}\n")
+
+    # Optionally save the ASCII art frames to text files
+    for i, frame in enumerate(ascii_frames):
+        with open(f"ascii_image_frame_{i + 1}.txt", "w") as f:
+            f.write(frame)
