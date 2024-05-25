@@ -1,0 +1,74 @@
+import cv2
+import PIL.Image
+import numpy as np
+
+
+ASCII_CHARS = ["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", " "]
+
+def resize_image(image, new_width=100):
+    width, height = image.size
+    ratio = height / width
+    new_height = int(new_width * ratio)
+    resized_image = image.resize((new_width, new_height))
+    return resized_image
+
+def grayify(image):
+    grayscale_image = image.convert("L")
+    return grayscale_image
+
+def pixels_to_ascii(image):
+    pixels = image.getdata()
+    ascii_str = "".join([ASCII_CHARS[pixel // 25] for pixel in pixels])
+    return ascii_str
+
+def convert_image_to_ascii(image, new_width=100):
+    image = resize_image(image, new_width)
+    image = grayify(image)
+    ascii_str = pixels_to_ascii(image)
+    
+    img_width = image.width
+    ascii_str_len = len(ascii_str)
+    ascii_img = "\n".join([ascii_str[index:(index + img_width)] for index in range(0, ascii_str_len, img_width)])
+
+    return ascii_img
+
+def capture_video_from_camera(new_width=100):
+    
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        raise Exception("Could not open video device")
+
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+       
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = PIL.Image.fromarray(image)
+
+      
+        ascii_img = convert_image_to_ascii(pil_image, new_width)
+
+     
+        print("\x1b[H", end='')
+
+       
+        print(ascii_img)
+
+      
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+   
+    cap.release()
+
+if __name__ == "__main__":
+    try:
+        capture_video_from_camera(100)
+    except Exception as e:
+        print(f"Error: {e}")
