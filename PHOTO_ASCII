@@ -1,0 +1,48 @@
+import PIL.Image
+
+# ASCII characters used to build the output text
+ASCII_CHARS = ["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", "."]
+
+def resize_image(image, new_width=100):
+    width, height = image.size
+    ratio = height / width
+    new_height = int(new_width * ratio)
+    resized_image = image.resize((new_width, new_height))
+    return resized_image
+
+def grayify(image):
+    grayscale_image = image.convert("L")
+    return grayscale_image
+
+def pixels_to_ascii(image):
+    pixels = image.getdata()
+    ascii_str = "".join([ASCII_CHARS[pixel // 25] for pixel in pixels])
+    return ascii_str
+
+def convert_image_to_ascii(image_path, new_width=100):
+    try:
+        # Load the image
+        image = PIL.Image.open(image_path)
+    except Exception as e:
+        print(e)
+        return
+
+    # Convert the image to ASCII
+    image = resize_image(image, new_width)
+    image = grayify(image)
+    ascii_str = pixels_to_ascii(image)
+    
+    img_width = image.width
+    ascii_str_len = len(ascii_str)
+    ascii_img = "\n".join([ascii_str[index:(index + img_width)] for index in range(0, ascii_str_len, img_width)])
+
+    return ascii_img
+
+if __name__ == "__main__":
+    image_path = r"C:\Users\jiten\Downloads\WhatsApp Image 2024-05-25 at 21.57.14_1bad4b25.jpg"  # Path to the image file
+    ascii_img = convert_image_to_ascii(image_path, 100)
+    print(ascii_img)
+
+    # Optionally save the ASCII art to a text file
+    with open("ascii_image.txt", "w") as f:
+        f.write(ascii_img)
